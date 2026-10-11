@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "goal_001",
+    "name": "Spring Break Trip",
+    "target_cents": 60000,
+    "saved_cents": 11000,
+    "deadline": "2027-03-15"
+  },
+  {
+    "id": "goal_002",
+    "name": "Emergency Fund",
+    "target_cents": 100000,
+    "saved_cents": 30000,
+    "deadline": "2027-06-30"
+  }
+]

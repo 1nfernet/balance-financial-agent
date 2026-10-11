@@ -7,7 +7,13 @@ budgets, bank accoutn balances, transaction data, etc...
 """
 
 from datetime import date, timedelta
-from data_access import load_accounts, load_budgets, load_transactions
+from data_access import (
+    load_accounts,
+    load_budgets,
+    load_savings_goals,
+    load_transactions,
+    load_upcoming_expenses,
+)
 
 # Fixed date for mock dataset, not curr date
 DEMO_DATE = date(2026, 9, 22)
@@ -26,6 +32,13 @@ def _period_start(period: str) -> date:
         return (DEMO_DATE.replace(day=1) - timedelta(days=1)).replace(day=1)
     
     raise ValueError("Use today, this_week, this_month, or last_month.")
+
+
+def _months_until(deadline: date) -> int:
+    """Count calendar months left before a deadline, at least one."""
+
+    months = (deadline.year - DEMO_DATE.year) * 12 + deadline.month - DEMO_DATE.month
+    return max(months, 1)
 
 
 def _category_error(category: str) -> dict | None:
@@ -147,6 +160,89 @@ def get_budget(category: str) -> dict:
     }
 
 
+def get_savings_goals(goal: str | None = None) -> dict:
+    """Return savings goal progress and the monthly amount needed to finish on time."""
+
+    goals = load_savings_goals()
+
+    # match goal name loosely so "spring break" finds "Spring Break Trip"
+    if goal is not None:
+        query = goal.strip().lower()
+        goals = [item for item in goals if query in item["name"].lower()]
+        if not goals:
+            return {
+                "error": f"No savings goal matching {goal}.",
+                "available_goals": [item["name"] for item in load_savings_goals()],
+            }
+
+    results = []
+    for item in goals:
+        deadline = date.fromisoformat(item["deadline"])
+        remaining = max(item["target_cents"] - item["saved_cents"], 0)
+        months_left = _months_until(deadline)
+        results.append({
+            "id": item["id"],
+            "name": item["name"],
+            "target_cents": item["target_cents"],
+            "saved_cents": item["saved_cents"],
+            "remaining_cents": remaining,
+            "percent_complete": round(100 * item["saved_cents"] / item["target_cents"], 1),
+            "deadline": item["deadline"],
+            "days_left": (deadline - DEMO_DATE).days,
+            "months_left": months_left,
+            # round up so saving this much each month always reaches the goal
+            "monthly_needed_cents": -(-remaining // months_left),
+        })
+
+    return {
+        "goals": results,
+        "as_of_date": DEMO_DATE.isoformat(),
+        "currency": "USD",
+    }
+
+def get_upcoming_expenses(days: int = 30) -> dict:
+    """Return bills due after the demo date and within the next number of days."""
+
+    if type(days) is not int or not 1 <= days <= 365:
+        return {"error": "days must be an integer from 1 to 365."}
+
+    end = DEMO_DATE + timedelta(days=days)
+    bills = [
+        bill for bill in load_upcoming_expenses()
+        if DEMO_DATE < date.fromisoformat(bill["due_date"]) <= end
+    ]
+    bills.sort(key=lambda bill: bill["due_date"])
+
+    return {
+        "bills": bills,
+        "start_date": DEMO_DATE.isoformat(),
+        "end_date": end.isoformat(),
+        "total_due_cents": sum(bill["amount_cents"] for bill in bills),
+        "bill_count": len(bills),
+        "currency": "USD",
+    }
+
+def get_safe_to_spend(days: int = 30) -> dict:
+    """Checking balance minus bills due in the window; savings are not counted."""
+
+    upcoming = get_upcoming_expenses(days)
+    if "error" in upcoming:
+        return upcoming
+
+    checking_cents = sum(
+        account["balance_cents"] for account in load_accounts()
+        if account["type"] == "checking"
+    )
+    return {
+        "checking_balance_cents": checking_cents,
+        "upcoming_bills_cents": upcoming["total_due_cents"],
+        "safe_to_spend_cents": checking_cents - upcoming["total_due_cents"],
+        "bill_count": upcoming["bill_count"],
+        "end_date": upcoming["end_date"],
+        "currency": "USD",
+    }
+
+
 if __name__ == "__main__":
     import json
 
@@ -156,6 +252,9 @@ if __name__ == "__main__":
         "Dining this week": get_spending("dining", "this_week"),
         "Dining budget": get_budget("dining"),
         "Unknown category": get_budget("groceries"),
+        "Savings goals": get_savings_goals(),
+        "Bills next 7 days": get_upcoming_expenses(7),
+        "Safe to spend (30 days)": get_safe_to_spend(),
     }
     for name, result in examples.items():
         print(f"\n{name}")

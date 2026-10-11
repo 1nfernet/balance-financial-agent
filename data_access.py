@@ -31,6 +31,14 @@ def load_transactions() -> list[dict]:
     """Load all transaction records."""
     return _load_json("transactions.json")
 
+def load_savings_goals() -> list[dict]:
+    """Load all savings goal records."""
+    return _load_json("savings_goals.json")
+
+def load_upcoming_expenses() -> list[dict]:
+    """Load all upcoming bill records."""
+    return _load_json("upcoming_expenses.json")
+
 if __name__ == "__main__":
     # main used for testing the functions in this file
     
@@ -38,6 +46,8 @@ if __name__ == "__main__":
         ("Accounts", load_accounts),
         ("Budgets", load_budgets),
         ("Transactions", load_transactions),
+        ("Savings goals", load_savings_goals),
+        ("Upcoming expenses", load_upcoming_expenses),
     ]:
         records = loader()
         print(f"\n{name}: {len(records)} records")
