@@ -11,7 +11,16 @@ from inspect import signature
 from pathlib import Path
 from dotenv import load_dotenv
 from openai import OpenAI
-from tools import DEMO_DATE, get_accounts, get_budget, get_spending, get_recent_transactions
+from tools import (
+    DEMO_DATE,
+    get_accounts,
+    get_budget,
+    get_recent_transactions,
+    get_safe_to_spend,
+    get_savings_goals,
+    get_spending,
+    get_upcoming_expenses,
+)
 
 AGENT_INSTRUCTIONS = """
 You are Balance, a financial assistant working with fictional demo data.
@@ -19,6 +28,7 @@ Use tools for factual claims about the user's finances. Never invent values.
 All money responses in tool results is in cents, format it as dollars in your answer. 
 THAT IS IMPORTANT, ENSURE THAT YOU UNDERSTAND RESULTS ARE IN CENTS, AND YOU HAVE TO CONVERT TO DOLLARS.
 Combined account balances include savings and are not automatically spendable.
+For "can I afford" or "how much can I spend" questions, use get_safe_to_spend so upcoming bills are counted.
 If data is missing or a tool returns an error, explain that clearly.
 You cannot transfer money or change financial records.
 Keep answers concise. And sound conversational, the target user is genz.
@@ -31,6 +41,9 @@ TOOL_FUNCTIONS = {
     "get_budget": get_budget,
     "get_spending": get_spending,
     "get_recent_transactions": get_recent_transactions,
+    "get_savings_goals": get_savings_goals,
+    "get_upcoming_expenses": get_upcoming_expenses,
+    "get_safe_to_spend": get_safe_to_spend,
 }
 
 TOOL_DEFINITIONS = [
@@ -98,6 +111,51 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_savings_goals",
+            "description": "Get savings goals with target, saved, remaining, deadline, and monthly amount needed, all in cents.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "goal": {"type": ["string", "null"], "description": "Part of a goal name, such as spring break. Omit or use null for all goals."},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_upcoming_expenses",
+            "description": "List bills due after today within the next number of days, with their total in cents.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "days": {"type": "integer", "minimum": 1, "maximum": 365, "description": "Days ahead to look; defaults to 30."},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_safe_to_spend",
+            "description": "Checking balance minus bills due within the next number of days, in cents. Savings are not included.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "days": {"type": "integer", "minimum": 1, "maximum": 365, "description": "Days ahead to cover bills for; defaults to 30."},
+                },
+                "required": [],
+                "additionalProperties": False,
+            },
+        },
+    },
 ]
 
 
@@ -147,21 +205,50 @@ def validate_tool_arguments(name: str, arguments: dict) -> None:
         limit = arguments["limit"]
         if type(limit) is not int or limit < 1:
             raise ValueError("limit must be a positive integer.")
+    if "goal" in arguments:
+        goal = arguments["goal"]
+        if goal is not None and (not isinstance(goal, str) or not goal.strip()):
+            raise ValueError("goal must be a non-empty string or null.")
+    if "days" in arguments:
+        days = arguments["days"]
+        if type(days) is not int or not 1 <= days <= 365:
+            raise ValueError("days must be an integer from 1 to 365.")
 
 
 def execute_tool(name: str, arguments: dict) -> dict:
     """Validate a requested call and execute an allowed Python function."""
     validate_tool_arguments(name, arguments)
 
-    # Show tool calls as evidence for the demo.
-    # print(f"Tool: {name}, arguments: {arguments}")
-
     # get tool and run it with arguments
     tool_function = TOOL_FUNCTIONS[name]
     return tool_function(**arguments)
 
 
-def run_agent(message: str, history: list[dict] | None = None) -> str:
+def parse_tool_call(tool_call) -> tuple[str, dict]:
+    """Decode a tool call's name and JSON arguments."""
+    name = tool_call.function.name
+    try:
+        arguments = json.loads(tool_call.function.arguments or "{}")
+    except (json.JSONDecodeError, TypeError) as exc:
+        raise ValueError(f"Invalid JSON arguments for tool: {name}") from exc
+    return name, arguments
+
+
+def run_tool_call(tool_call, verbose: bool = False) -> dict:
+    """Run one tool call; problems become error results the model can read and recover from."""
+    try:
+        name, arguments = parse_tool_call(tool_call)
+        result = execute_tool(name, arguments)
+    except ValueError as exc:
+        name, result = tool_call.function.name, {"error": str(exc)}
+
+    # Show tool calls as evidence for the demo.
+    if verbose:
+        print(f"  [tool] {name}({tool_call.function.arguments}) -> {json.dumps(result)[:200]}")
+    return result
+
+
+def run_agent(message: str, history: list[dict] | None = None, verbose: bool = False) -> str:
     """Send a question, handle tool calls, and return the final answer."""
 
     # Work on a copy so a failed request does not damage the session history.
@@ -189,31 +276,14 @@ def run_agent(message: str, history: list[dict] | None = None) -> str:
                 history[:] = messages
             return answer
 
-        # check all requested tools before running them
-        parsed_tool_calls = []
-        for tool_call in assistant_message.tool_calls:
-            # check if requested tool exists
-            name = tool_call.function.name
-            if name not in TOOL_FUNCTIONS:
-                raise ValueError(f"Unknown tool: {name}")
-
-            # convert tool arguments from json
-            try:
-                arguments = json.loads(tool_call.function.arguments)
-            except (json.JSONDecodeError, TypeError) as exc:
-                raise ValueError(f"Invalid JSON arguments for tool: {name}") from exc
-
-            validate_tool_arguments(name, arguments)
-
-            parsed_tool_calls.append((tool_call.id, name, arguments))
-
-        # save model response and add results from each tool
+        # save model response and add a result for each tool call; bad calls
+        # get an error result instead of crashing so the model can retry
         messages.append(assistant_message.model_dump(exclude_none=True))
-        for call_id, name, arguments in parsed_tool_calls:
-            result = execute_tool(name, arguments)
+        for tool_call in assistant_message.tool_calls:
+            result = run_tool_call(tool_call, verbose)
             messages.append({
                 "role": "tool",
-                "tool_call_id": call_id,
+                "tool_call_id": tool_call.id,
                 "content": json.dumps(result),
             })
 
