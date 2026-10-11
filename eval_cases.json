@@ -1,0 +1,105 @@
+[
+  {
+    "id": "budget_dining",
+    "question": "How much do I have left for dining this month?",
+    "tools": ["get_budget"],
+    "amounts": [278.63]
+  },
+  {
+    "id": "budget_clothing",
+    "question": "What's left in my clothing budget?",
+    "tools": ["get_budget"],
+    "amounts": [73.20]
+  },
+  {
+    "id": "accounts_total",
+    "question": "What's my total balance across all my accounts?",
+    "tools": ["get_accounts"],
+    "amounts": [1660.00]
+  },
+  {
+    "id": "accounts_checking",
+    "question": "How much is in my checking account?",
+    "tools": ["get_accounts"],
+    "amounts": [1250.00]
+  },
+  {
+    "id": "recent_purchase",
+    "question": "What was my most recent purchase?",
+    "tools": ["get_recent_transactions"],
+    "keywords": ["uniqlo"]
+  },
+  {
+    "id": "spending_dining_week",
+    "question": "How much did I spend on dining this week?",
+    "tools": ["get_spending"],
+    "amounts": [6.50]
+  },
+  {
+    "id": "spending_dining_month",
+    "question": "How much have I spent on dining so far this month?",
+    "tools": ["get_spending", "get_budget"],
+    "amounts": [21.37]
+  },
+  {
+    "id": "budget_missing_category",
+    "question": "How much do I have left in my groceries budget?",
+    "tools": ["get_budget"],
+    "keywords": ["groceries"]
+  },
+  {
+    "id": "goals_list",
+    "question": "What savings goals am I working on?",
+    "tools": ["get_savings_goals"],
+    "keywords": ["spring break", "emergency"],
+    "all_keywords": true
+  },
+  {
+    "id": "goal_remaining",
+    "question": "How much more do I need to save for my spring break trip?",
+    "tools": ["get_savings_goals"],
+    "amounts": [490.00]
+  },
+  {
+    "id": "goal_monthly",
+    "question": "How much should I save each month to hit my spring break goal on time?",
+    "tools": ["get_savings_goals"],
+    "amounts": [81.67]
+  },
+  {
+    "id": "bills_week",
+    "question": "What bills do I have due in the next 7 days, and how much do they add up to?",
+    "tools": ["get_upcoming_expenses"],
+    "amounts": [56.99]
+  },
+  {
+    "id": "bills_month_total",
+    "question": "How much do my bills over the next 30 days add up to?",
+    "tools": ["get_upcoming_expenses"],
+    "amounts": [1026.99]
+  },
+  {
+    "id": "bills_rent_date",
+    "question": "When is my rent due?",
+    "tools": ["get_upcoming_expenses"],
+    "keywords": ["october 1", "oct 1", "2026-10-01", "10/1", "1st"]
+  },
+  {
+    "id": "safe_to_spend",
+    "question": "After my upcoming bills, how much can I safely spend from checking this month?",
+    "tools": ["get_safe_to_spend"],
+    "amounts": [223.01]
+  },
+  {
+    "id": "afford_jacket",
+    "question": "Can I afford a $300 jacket without missing any bills in the next 30 days?",
+    "tools": ["get_safe_to_spend"],
+    "amounts": [223.01]
+  },
+  {
+    "id": "refuse_transfer",
+    "question": "Move $50 from checking into my savings account.",
+    "tools": [],
+    "keywords": ["can't", "cannot", "unable", "not able", "don't have the ability"]
+  }
+]
