@@ -1,0 +1,255 @@
+{
+  "label": "baseline",
+  "timestamp": "20261013-203014",
+  "model": "gpt-4o-mini",
+  "summary": {
+    "total": 17,
+    "tool_selection": 9,
+    "answer_accuracy": 9,
+    "passed": 9
+  },
+  "results": [
+    {
+      "id": "budget_dining",
+      "question": "How much do I have left for dining this month?",
+      "expected_tools": [
+        "get_budget"
+      ],
+      "called_tools": [
+        "get_budget"
+      ],
+      "answer": "You have $278.63 left for dining this month. You've spent $21.37 so far.",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "budget_clothing",
+      "question": "What's left in my clothing budget?",
+      "expected_tools": [
+        "get_budget"
+      ],
+      "called_tools": [
+        "get_budget"
+      ],
+      "answer": "You've got $73.20 left in your clothing budget for this month!",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "accounts_total",
+      "question": "What's my total balance across all my accounts?",
+      "expected_tools": [
+        "get_accounts"
+      ],
+      "called_tools": [
+        "get_accounts"
+      ],
+      "answer": "Your total balance across all your accounts is $1,660.00.",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "accounts_checking",
+      "question": "How much is in my checking account?",
+      "expected_tools": [
+        "get_accounts"
+      ],
+      "called_tools": [
+        "get_accounts"
+      ],
+      "answer": "You have $1,250 in your Everyday Checking account. ",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "recent_purchase",
+      "question": "What was my most recent purchase?",
+      "expected_tools": [
+        "get_recent_transactions"
+      ],
+      "called_tools": [
+        "get_recent_transactions"
+      ],
+      "answer": "Your most recent purchase was at Uniqlo on September 22, 2026, and it cost $26.80.",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "spending_dining_week",
+      "question": "How much did I spend on dining this week?",
+      "expected_tools": [
+        "get_spending"
+      ],
+      "called_tools": [
+        "get_spending"
+      ],
+      "answer": "You spent $6.50 on dining this week.",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "spending_dining_month",
+      "question": "How much have I spent on dining so far this month?",
+      "expected_tools": [
+        "get_spending",
+        "get_budget"
+      ],
+      "called_tools": [
+        "get_spending"
+      ],
+      "answer": "You've spent $21.37 on dining so far this month!",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "budget_missing_category",
+      "question": "How much do I have left in my groceries budget?",
+      "expected_tools": [
+        "get_budget"
+      ],
+      "called_tools": [
+        "get_budget"
+      ],
+      "answer": "It looks like there's no budget set for groceries right now. If you want to create a budget, let me know!",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    },
+    {
+      "id": "goals_list",
+      "question": "What savings goals am I working on?",
+      "expected_tools": [
+        "get_savings_goals"
+      ],
+      "called_tools": [],
+      "answer": "It looks like I don't have direct access to your specific savings goals or any related information. If you have set any goals, you might want to check your financial app or document where you keep track of them. Let me know if you have any other questions!",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "goal_remaining",
+      "question": "How much more do I need to save for my spring break trip?",
+      "expected_tools": [
+        "get_savings_goals"
+      ],
+      "called_tools": [],
+      "answer": "I can help with that! But I'll need to know your budget for the trip and how much you have saved so far. Can you provide that info?",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "goal_monthly",
+      "question": "How much should I save each month to hit my spring break goal on time?",
+      "expected_tools": [
+        "get_savings_goals"
+      ],
+      "called_tools": [],
+      "answer": "I can help with that! To give you the best advice, I'll need to know your spring break goal amount and when you plan to go. Can you share those details with me?",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "bills_week",
+      "question": "What bills do I have due in the next 7 days, and how much do they add up to?",
+      "expected_tools": [
+        "get_upcoming_expenses"
+      ],
+      "called_tools": [],
+      "answer": "I currently don't have access to information about your upcoming bills or their total amounts. If you have a list or details about those bills, feel free to share, and I can help you organize or analyze that information!",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "bills_month_total",
+      "question": "How much do my bills over the next 30 days add up to?",
+      "expected_tools": [
+        "get_upcoming_expenses"
+      ],
+      "called_tools": [],
+      "answer": "I don't have access to your specific bills or upcoming payments. If you can provide the details or categories of your bills, I can help you estimate or track your monthly expenses.",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "bills_rent_date",
+      "question": "When is my rent due?",
+      "expected_tools": [
+        "get_upcoming_expenses"
+      ],
+      "called_tools": [],
+      "answer": "I don't have access to specific information about your rent due date. You might want to check your lease agreement or any reminders you've set up regarding rent payments.",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "safe_to_spend",
+      "question": "After my upcoming bills, how much can I safely spend from checking this month?",
+      "expected_tools": [
+        "get_safe_to_spend"
+      ],
+      "called_tools": [
+        "get_accounts",
+        "get_spending"
+      ],
+      "answer": "I couldn't find any spending information for bills, so I can't account for that right now. However, your checking account balance is $1,250. \n\nSince I don't have your bill amount, I suggest checking what you need to pay and subtracting it from the balance to figure out how much you can safely spend. If you let me know more about your spending habits, I can help you budget better!",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "afford_jacket",
+      "question": "Can I afford a $300 jacket without missing any bills in the next 30 days?",
+      "expected_tools": [
+        "get_safe_to_spend"
+      ],
+      "called_tools": [
+        "get_accounts",
+        "get_budget"
+      ],
+      "answer": "You have a combined account balance of $1,660.00, which includes $1,250.00 in your checking account and $410.00 in savings. However, I couldn't find any budget information for your bills this month. This makes it a bit tricky to determine if you can afford the $300 jacket without missing a bill. \n\nIf you know your upcoming bill amounts or have extra funds available beyond the jacket purchase, feel free to share, and we can figure it out from there!",
+      "error": null,
+      "tools_ok": false,
+      "answer_ok": false,
+      "passed": false
+    },
+    {
+      "id": "refuse_transfer",
+      "question": "Move $50 from checking into my savings account.",
+      "expected_tools": [],
+      "called_tools": [],
+      "answer": "I can't transfer money or change financial records. But if you want to check your balances or spending, just let me know!",
+      "error": null,
+      "tools_ok": true,
+      "answer_ok": true,
+      "passed": true
+    }
+  ]
+}
