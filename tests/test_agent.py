@@ -159,3 +159,16 @@ def test_check_tools_expects_none_for_refusals():
     assert evaluation.check_tools([], [])
     assert not evaluation.check_tools([], ["get_accounts"])
     assert evaluation.check_tools(["get_spending", "get_budget"], ["get_budget"])
+
+
+# cli error messages
+
+def test_quota_errors_are_told_apart_from_rate_limits():
+    from main import describe_rate_limit
+
+    def error(code=None, error_type=None):
+        return SimpleNamespace(code=code, type=error_type)
+
+    assert "out of credit" in describe_rate_limit(error("credit_balance_exhausted"))
+    assert "out of credit" in describe_rate_limit(error(error_type="insufficient_quota"))
+    assert "Too many requests" in describe_rate_limit(error("rate_limit_exceeded", "requests"))

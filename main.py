@@ -10,10 +10,21 @@ from openai import APIError, AuthenticationError, RateLimitError
 from agent import run_agent
 
 
+# 429 codes that mean billing or spend limits, not sending requests too fast
+QUOTA_ERROR_CODES = {
+    "insufficient_quota",
+    "credit_balance_exhausted",
+    "organization_spend_limit_exceeded",
+    "project_spend_limit_exceeded",
+    "organization_usage_limit_exceeded",
+}
+
+
 def describe_rate_limit(error: RateLimitError) -> str:
     """Tell an empty account apart from sending requests too quickly."""
-    if getattr(error, "code", None) == "insufficient_quota":
-        return "Balance: The API account has no remaining credit (insufficient_quota). Add credit under Billing.\n"
+    code = getattr(error, "code", None)
+    if code in QUOTA_ERROR_CODES or getattr(error, "type", None) == "insufficient_quota":
+        return f"Balance: The API account is out of credit or over its spend limit ({code or 'insufficient_quota'}). Check Billing.\n"
     return "Balance: Too many requests right now (rate limit). Wait a moment and try again.\n"
 
 
